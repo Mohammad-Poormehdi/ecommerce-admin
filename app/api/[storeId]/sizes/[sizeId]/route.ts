@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { BillboardValidator } from "@/validators/forms"
+import { BillboardValidator, SizeValidator } from "@/validators/forms"
 import { z } from "zod"
 
 import prismadb from "@/lib/prismadb"
@@ -7,21 +7,21 @@ import { getAuthSession } from "@/lib/session"
 
 export async function GET(
   request: Request,
-  { params }: { params: { billboardId: string } }
+  { params }: { params: { sizeId: string } }
 ) {
   try {
-    if (!params.billboardId) {
+    if (!params.sizeId) {
       return new Response("Billbord Id is missing", { status: 400 })
     }
-    const billboard = await prismadb.billboard.findUnique({
+    const size = await prismadb.size.findUnique({
       where: {
-        id: params.billboardId,
+        id: params.sizeId,
       },
     })
-    return NextResponse.json(billboard, { status: 200 })
+    return NextResponse.json(size, { status: 200 })
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.log("[BILLBOARD_GET]", error)
+      console.log("[SIZE_GET]", error)
     }
     return new Response("Internal server error", { status: 500 })
   }
@@ -29,14 +29,14 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { storeId: string; billboardId: string } }
+  { params }: { params: { storeId: string; sizeId: string } }
 ) {
   try {
     const session = await getAuthSession()
     if (session?.user) {
       return new Response("Unauthenticated", { status: 401 })
     }
-    if (!params.storeId || !params.billboardId) {
+    if (!params.storeId || !params.sizeId) {
       return new Response("Invalid params", { status: 400 })
     }
     const storeByUserId = await prismadb.store.findMany({
@@ -48,21 +48,21 @@ export async function PATCH(
       return new Response("Unauthorized", { status: 403 })
     }
     const body = await request.json()
-    const { imageUrl, label } = BillboardValidator.parse(body)
-    const updatedBillboard = await prismadb.billboard.update({
+    const { name, value } = SizeValidator.parse(body)
+    const updatedSize = await prismadb.size.update({
       where: {
-        id: params.billboardId,
+        id: params.sizeId,
         storeId: params.storeId,
       },
       data: {
-        label,
-        imageUrl,
+        name,
+        value,
       },
     })
-    return NextResponse.json(updatedBillboard, { status: 200 })
+    return NextResponse.json(updatedSize, { status: 200 })
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.log("[BILLBOARD_PATCH]", error)
+      console.log("[SIZE_PATCH]", error)
     }
     if (error instanceof z.ZodError) {
       return new Response("Invalid data request", { status: 422 })
@@ -73,14 +73,14 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { storeId: string; billboardId: string } }
+  { params }: { params: { storeId: string; sizeId: string } }
 ) {
   try {
     const session = await getAuthSession()
     if (!session?.user) {
       return new Response("Unauthenticated", { status: 401 })
     }
-    if (!params.storeId || !params.billboardId) {
+    if (!params.storeId || !params.sizeId) {
       return new Response("Invalid Pramas", { status: 400 })
     }
     const storeByUserId = await prismadb.store.findUnique({
@@ -92,15 +92,15 @@ export async function DELETE(
     if (!storeByUserId) {
       return new Response("Unauthorized", { status: 403 })
     }
-    const deletedBillboard = await prismadb.billboard.delete({
+    const deleteSize = await prismadb.size.delete({
       where: {
-        id: params.billboardId,
+        id: params.sizeId,
       },
     })
-    return NextResponse.json(deletedBillboard, { status: 200 })
+    return NextResponse.json(deleteSize, { status: 200 })
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.log("[BILLBOARD_DELETE]", error)
+      console.log("[SIZE_DELETE]", error)
     }
     return new Response("Internal server error", { status: 500 })
   }

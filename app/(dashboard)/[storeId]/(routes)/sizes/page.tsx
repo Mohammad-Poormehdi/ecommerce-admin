@@ -6,31 +6,32 @@ import { Button } from "@/components/ui/button"
 import Heading from "@/components/ui/heading"
 
 import BillboardClient from "./components/client"
-import { BillboardColumn } from "./components/columns"
+import { SizeColumn } from "./components/columns"
 
-interface BillboardsPageProps {
+interface SizesPageProps {
   params: { storeId: string }
 }
 
-const BillboardsPage: React.FC<BillboardsPageProps> = async ({ params }) => {
-  const billboards = await prismadb.billboard.findMany({
+const SizesPage: React.FC<SizesPageProps> = async ({ params }) => {
+  const sizes = await prismadb.size.findMany({
     where: { storeId: params.storeId },
     orderBy: { createdAt: "desc" },
   })
-  const formatedBillboards: BillboardColumn[] = billboards.map((item) => ({
+  const formatedSizes: SizeColumn[] = sizes.map((item) => ({
     id: item.id,
-    label: item.label,
+    name: item.name,
+    value: item.value,
     createdAt: format(item.createdAt, "MMMM do, yyyy"),
   }))
   return (
     <>
       <div className="flex-col">
         <div className="flex-1 space-y-4 p-8 pt-6">
-          <BillboardClient billboards={formatedBillboards} />
+          <BillboardClient sizes={formatedSizes} />
         </div>
       </div>
     </>
   )
 }
 
-export default BillboardsPage
+export default SizesPage

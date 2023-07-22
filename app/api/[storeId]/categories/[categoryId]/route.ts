@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { BillboardValidator } from "@/validators/forms"
+import { BillboardValidator, CategoryValidator } from "@/validators/forms"
 import { z } from "zod"
 
 import prismadb from "@/lib/prismadb"
@@ -7,21 +7,24 @@ import { getAuthSession } from "@/lib/session"
 
 export async function GET(
   request: Request,
-  { params }: { params: { billboardId: string } }
+  { params }: { params: { categoryId: string; storeId: string } }
 ) {
   try {
-    if (!params.billboardId) {
-      return new Response("Billbord Id is missing", { status: 400 })
+    if (!params.categoryId) {
+      return new Response("Category Id is missing", { status: 400 })
     }
-    const billboard = await prismadb.billboard.findUnique({
+    if (!params.storeId) {
+      return new Response("Store Id is missing")
+    }
+    const category = await prismadb.category.findUnique({
       where: {
-        id: params.billboardId,
+        id: params.categoryId,
       },
     })
-    return NextResponse.json(billboard, { status: 200 })
+    return NextResponse.json(category, { status: 200 })
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.log("[BILLBOARD_GET]", error)
+      console.log("[CATEGORY_GET]", error)
     }
     return new Response("Internal server error", { status: 500 })
   }
@@ -29,14 +32,14 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { storeId: string; billboardId: string } }
+  { params }: { params: { storeId: string; categoryId: string } }
 ) {
   try {
     const session = await getAuthSession()
-    if (session?.user) {
+    if (!session?.user) {
       return new Response("Unauthenticated", { status: 401 })
     }
-    if (!params.storeId || !params.billboardId) {
+    if (!params.storeId || !params.categoryId) {
       return new Response("Invalid params", { status: 400 })
     }
     const storeByUserId = await prismadb.store.findMany({
@@ -48,21 +51,21 @@ export async function PATCH(
       return new Response("Unauthorized", { status: 403 })
     }
     const body = await request.json()
-    const { imageUrl, label } = BillboardValidator.parse(body)
-    const updatedBillboard = await prismadb.billboard.update({
+    const { name, billboardId } = CategoryValidator.parse(body)
+    const updatedCategory = await prismadb.category.update({
       where: {
-        id: params.billboardId,
+        id: params.categoryId,
         storeId: params.storeId,
       },
       data: {
-        label,
-        imageUrl,
+        name,
+        billboardId,
       },
     })
-    return NextResponse.json(updatedBillboard, { status: 200 })
+    return NextResponse.json(updatedCategory, { status: 200 })
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.log("[BILLBOARD_PATCH]", error)
+      console.log("[CATEGORY_PATCH]", error)
     }
     if (error instanceof z.ZodError) {
       return new Response("Invalid data request", { status: 422 })
@@ -73,14 +76,14 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { storeId: string; billboardId: string } }
+  { params }: { params: { storeId: string; categoryId: string } }
 ) {
   try {
     const session = await getAuthSession()
     if (!session?.user) {
       return new Response("Unauthenticated", { status: 401 })
     }
-    if (!params.storeId || !params.billboardId) {
+    if (!params.storeId || !params.categoryId) {
       return new Response("Invalid Pramas", { status: 400 })
     }
     const storeByUserId = await prismadb.store.findUnique({
@@ -92,15 +95,15 @@ export async function DELETE(
     if (!storeByUserId) {
       return new Response("Unauthorized", { status: 403 })
     }
-    const deletedBillboard = await prismadb.billboard.delete({
+    const deletedCategory = await prismadb.category.delete({
       where: {
-        id: params.billboardId,
+        id: params.categoryId,
       },
     })
-    return NextResponse.json(deletedBillboard, { status: 200 })
+    return NextResponse.json(deletedCategory, { status: 200 })
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.log("[BILLBOARD_DELETE]", error)
+      console.log("[CATEGORY_DELETE]", error)
     }
     return new Response("Internal server error", { status: 500 })
   }

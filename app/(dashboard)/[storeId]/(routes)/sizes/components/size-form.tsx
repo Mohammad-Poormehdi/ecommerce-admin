@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { BillboardValidator, CreateBillboardRequest } from "@/validators/forms"
+import { CreateSizeRequest, SizeValidator } from "@/validators/forms"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Billboard, Store } from "@prisma/client"
+import { Size } from "@prisma/client"
 import { useMutation } from "@tanstack/react-query"
 import axios, { AxiosError } from "axios"
 import { Trash } from "lucide-react"
@@ -26,37 +26,37 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/seperator"
 import AlertModal from "@/components/modals/alert-modal"
 
-interface BillboardFormProps {
-  billboard: Billboard | null
+interface SizeFormProps {
+  size: Size | null
   params: {
     storeId: string
-    billboardId: string
+    sizeId: string
   }
 }
 
-const BillboardForm: React.FC<BillboardFormProps> = ({ billboard, params }) => {
+const SizeForm: React.FC<SizeFormProps> = ({ size, params }) => {
   const router = useRouter()
-  const title = billboard ? "Edit billboard" : "Create billboard"
-  const description = billboard ? "Edit a billboard" : "Add a new billboard"
-  const toastMessage = billboard ? "Billboard updated." : "Billboard created."
-  const action = billboard ? "Save changes" : "Create"
+  const title = size ? "Edit size" : "Create size"
+  const description = size ? "Edit a size" : "Add a new size"
+  const toastMessage = size ? "size updated." : "size created."
+  const action = size ? "Save changes" : "Create"
 
-  const form = useForm<CreateBillboardRequest>({
-    resolver: zodResolver(BillboardValidator),
-    defaultValues: billboard || { label: "", imageUrl: "" },
+  const form = useForm<CreateSizeRequest>({
+    resolver: zodResolver(SizeValidator),
+    defaultValues: size || { name: "", value: "" },
   })
   const [isOpen, setIsOpen] = useState<boolean>(false)
   const { mutate: uploadImage, isLoading: isUpdatingName } = useMutation({
-    mutationFn: async (payload: CreateBillboardRequest) => {
+    mutationFn: async (payload: CreateSizeRequest) => {
       console.log(payload)
-      if (billboard) {
+      if (size) {
         await axios.patch(
-          `/api/${params.storeId}/billboards/${params.billboardId}`,
+          `/api/${params.storeId}/sizes/${params.sizeId}`,
           payload
         )
       } else {
         console.log(payload)
-        await axios.post(`/api/${params.storeId}/billboards`, payload)
+        await axios.post(`/api/${params.storeId}/sizes`, payload)
       }
     },
     onError: (error) => {
@@ -71,15 +71,13 @@ const BillboardForm: React.FC<BillboardFormProps> = ({ billboard, params }) => {
     onSuccess: () => {
       toast.success(toastMessage)
       router.refresh()
-      router.push(`/${params.storeId}/billboards`)
+      router.push(`/${params.storeId}/sizes`)
     },
   })
 
-  const { mutate: deleteBillboard, isLoading: isDeletingStore } = useMutation({
+  const { mutate: deletesize, isLoading: isDeletingStore } = useMutation({
     mutationFn: async () => {
-      await axios.delete(
-        `/api/${params.storeId}/billboards/${params.billboardId}`
-      )
+      await axios.delete(`/api/${params.storeId}/sizes/${params.sizeId}`)
     },
     onError: (error) => {
       if (error instanceof AxiosError) {
@@ -92,13 +90,13 @@ const BillboardForm: React.FC<BillboardFormProps> = ({ billboard, params }) => {
     },
     onSuccess: () => {
       setIsOpen(false)
-      toast.success("Billboard deleted succesfully")
-      router.push(`/${params.storeId}/billboards`)
+      toast.success("size deleted succesfully")
+      router.push(`/${params.storeId}/sizes`)
       router.refresh()
     },
   })
 
-  const onSubmit = async (values: CreateBillboardRequest) => {
+  const onSubmit = async (values: CreateSizeRequest) => {
     console.log(values)
     uploadImage(values)
   }
@@ -108,12 +106,12 @@ const BillboardForm: React.FC<BillboardFormProps> = ({ billboard, params }) => {
       <AlertModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onConfirm={deleteBillboard}
+        onConfirm={deletesize}
         loading={isDeletingStore}
       />
       <div className="flex items-center justify-between">
         <Heading title={title} description={description} />
-        {billboard && (
+        {size && (
           <Button
             variant="destructive"
             size="sm"
@@ -131,34 +129,32 @@ const BillboardForm: React.FC<BillboardFormProps> = ({ billboard, params }) => {
           className="space-y-8 w-full"
           onSubmit={form.handleSubmit(onSubmit)}
         >
-          <FormField
-            control={form.control}
-            name="imageUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Background image</FormLabel>
-                <FormControl>
-                  <ImageUpload
-                    disabled={false}
-                    value={field.value ? [field.value] : []}
-                    onChange={(url) => field.onChange(url)}
-                    onRemove={() => field.onChange("")}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           <div className="grid grid-cols-3 gap-8">
             <FormField
-              name="label"
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Label</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isUpdatingName}
-                      placeholder="Billboard label"
+                      placeholder="Size name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="value"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Value</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled={isUpdatingName}
+                      placeholder="Size value"
                       {...field}
                     />
                   </FormControl>
@@ -177,4 +173,4 @@ const BillboardForm: React.FC<BillboardFormProps> = ({ billboard, params }) => {
   )
 }
 
-export default BillboardForm
+export default SizeForm
