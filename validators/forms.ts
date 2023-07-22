@@ -23,6 +23,15 @@ export const SizeValidator = z.object({
   name: z.string().min(1),
   value: z.string().min(1),
 })
+export const ColorValidator = z.object({
+  name: z.string().min(1),
+  value: z
+    .string()
+    .min(4)
+    .regex(/^#/, { message: "please enter a valid color hex value" }),
+})
+
+export type CreateColorRequest = z.infer<typeof ColorValidator>
 
 export type CreateSizeRequest = z.infer<typeof SizeValidator>
 
