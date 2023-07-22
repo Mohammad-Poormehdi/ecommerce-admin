@@ -36,7 +36,7 @@ export const CellAction: React.FC<CellActionProps> = ({ size }) => {
     navigator.clipboard.writeText(id)
     toast.success("Id Copied to clipboard")
   }
-  const { mutate: deletesize, isLoading: isDeletingStore } = useMutation({
+  const { mutate: deleteColor, isLoading: isDeletingStore } = useMutation({
     mutationFn: async () => {
       await axios.delete(`/api/${params.storeId}/sizes/${size.id}`)
     },
@@ -53,6 +53,7 @@ export const CellAction: React.FC<CellActionProps> = ({ size }) => {
       setIsOpen(false)
       toast.success("size deleted succesfully")
       router.push(`/${params.storeId}/sizes`)
+      router.refresh()
     },
   })
   return (
@@ -61,7 +62,7 @@ export const CellAction: React.FC<CellActionProps> = ({ size }) => {
         isOpen={isOpen}
         loading={isDeletingStore}
         onClose={() => setIsOpen(false)}
-        onConfirm={deletesize}
+        onConfirm={deleteColor}
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -73,9 +74,7 @@ export const CellAction: React.FC<CellActionProps> = ({ size }) => {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem
-            onClick={() =>
-              router.push(`/${params.storeId}/sizes/${size.id}`)
-            }
+            onClick={() => router.push(`/${params.storeId}/sizes/${size.id}`)}
           >
             <Edit className="mr-2 h-4 w-4" />
             Update
