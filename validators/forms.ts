@@ -16,7 +16,7 @@ export const BillboardValidator = z.object({
 
 export const CategoryValidator = z.object({
   name: z.string().min(1),
-  billboardId: z.string().min(1),
+  billboardId: z.string().optional(),
 })
 
 export const SizeValidator = z.object({
@@ -30,6 +30,19 @@ export const ColorValidator = z.object({
     .min(4)
     .regex(/^#/, { message: "please enter a valid color hex value" }),
 })
+
+export const ProductValidator = z.object({
+  name: z.string().min(1),
+  images: z.object({ url: z.string() }).array(),
+  price: z.coerce.number().min(1),
+  categoryId: z.string().min(1),
+  colorId: z.string().min(1),
+  sizeId: z.string().min(1),
+  isFeatured: z.boolean().default(false).optional(),
+  isArchived: z.boolean().default(false).optional(),
+})
+
+export type CreateProductRequest = z.infer<typeof ProductValidator>
 
 export type CreateColorRequest = z.infer<typeof ColorValidator>
 
