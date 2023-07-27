@@ -33,7 +33,7 @@ export async function PATCH(
 ) {
   try {
     const session = await getAuthSession()
-    if (session?.user) {
+    if (!session?.user) {
       return new Response("Unauthenticated", { status: 401 })
     }
     if (!params.storeId || !params.billboardId) {
