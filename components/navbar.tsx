@@ -5,6 +5,7 @@ import { getAuthSession } from "@/lib/session"
 
 import MainNav from "./main-nav"
 import StoreSwitcher from "./store-switcher"
+import { ModeToggle } from "./theme-toggle"
 import UserAccountNav from "./user-account-nav"
 
 interface NavbarProps {}
@@ -26,6 +27,7 @@ const Navbar = async ({}) => {
           <StoreSwitcher items={stores} />
           <MainNav className="mx-6" />
           <div className="ml-auto flex items-center space-x-4">
+            <ModeToggle />
             <UserAccountNav
               user={{
                 name: session?.user.name,
