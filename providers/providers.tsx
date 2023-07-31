@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { SessionProvider } from "next-auth/react"
 
 import { ModalProvider } from "./modal-provider"
+import { ThemeProvider } from "./theme-provider"
 import { ToasterProvider } from "./toast-provider"
 
 interface ProvidersProps {
@@ -17,9 +18,11 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
     <>
       <QueryClientProvider client={queryClient}>
         <SessionProvider>
-          <ToasterProvider />
-          <ModalProvider />
-          {children}
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <ToasterProvider />
+            <ModalProvider />
+            {children}
+          </ThemeProvider>
         </SessionProvider>
       </QueryClientProvider>
     </>
