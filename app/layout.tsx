@@ -30,9 +30,9 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <>
-      <html lang="en" suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning className="h-full">
         <head />
-        <body className={cn(fontSans.className)}>
+        <body className={cn(fontSans.className, "h-full")}>
           <Providers>{children}</Providers>
         </body>
       </html>
